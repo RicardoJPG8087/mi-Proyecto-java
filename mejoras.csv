@@ -1,0 +1,7 @@
+codigo;nombre;descripcion;costo;tiempoHoras;repuestoNecesario
+RAM-UPGRADE;Ampliación de RAM;Aumentar la memoria RAM del equipo para mejor rendimiento;45000;1;RAM-003
+RAM-UPGRADE-16;Ampliación de RAM a 16GB;Aumentar la memoria RAM a 16GB para rendimiento óptimo;85000;1;RAM-004
+SSD-UPGRADE;Disco SSD;Reemplazar disco duro por SSD para mayor velocidad;65000;2;SSD-001
+GPU-UPGRADE;Tarjeta Gráfica;Agregar tarjeta gráfica dedicada;150000;2;GPU-005
+PSU-UPGRADE;Fuente de Poder;Actualizar fuente de poder para mayor estabilidad;88000;1;PSU-004
+COOLER-UPGRADE;Sistema Refrigeración;Mejorar ventilación del equipo;35000;1;COOLER-001
