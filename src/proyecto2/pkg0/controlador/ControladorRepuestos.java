@@ -13,7 +13,6 @@ import proyecto2.pkg0.modelo.GestionService;
 import proyecto2.pkg0.modelo.Repuesto;
 import proyecto2.pkg0.vistas.VentanaRepuestos;
 
-import java.util.Collection;
 
 public class ControladorRepuestos {
     private GestionService service;
@@ -28,9 +27,9 @@ public class ControladorRepuestos {
         ventana.setVisible(true);
     }
     
-    public Collection<Repuesto> listarRepuestos() {
-        return service.getInventario().values();
-    }
+    public java.util.List<Repuesto> listarRepuestos() {
+        return service.listarRepuestos();
+    }   
     
     public void guardarRepuesto(String codigo, String nombre, int stock, double precio, String proveedor) {
         Repuesto repuesto = new Repuesto(codigo, nombre, stock, precio, proveedor);
