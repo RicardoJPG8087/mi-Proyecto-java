@@ -22,7 +22,7 @@ public class DatosIniciales {
         lineas.add(new String[]{"ID Orden", "Cliente", "Equipo", "Diagnóstico", "Estado", "Fecha Ingreso", "Fecha Estimada"});
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        for (OrdenTrabajo ot : service.getOrdenes().values()) {
+        for (OrdenTrabajo ot : service.listarOrdenes()) {
             lineas.add(new String[]{
                 ot.getId(),
                 ot.getCliente().getNombre(),
