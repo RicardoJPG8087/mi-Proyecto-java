@@ -14,6 +14,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 import proyecto2.pkg0.modelo.excepciones.*;
+import java.util.Collections;
 
 public class GestionService {
     private Map<String, OrdenTrabajo> ordenes;
@@ -129,13 +130,6 @@ public class GestionService {
             System.err.println("Error clientes: " + e.getMessage());
         }
     }
-
-    public void registrarNuevoCliente(Cliente cliente) {
-        if (buscarCliente(cliente.getRut()) == null) {
-            clientes.add(cliente);
-            guardarClientesCSV();
-        }
-    }
     
     public void guardarClientesCSV() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(RUTA_CLIENTES))) {
@@ -230,7 +224,7 @@ public class GestionService {
     //    MÉTODOS QUE FALTABAN (SOLUCIÓN ERRORES)
     // ==========================================
 
-    public void registrarClienteSiNoExiste(Cliente cliente) {
+    public void agregarCliente(Cliente cliente) {
         if (buscarCliente(cliente.getRut()) == null) {
             clientes.add(cliente);
             guardarClientesCSV();
@@ -276,8 +270,9 @@ public class GestionService {
         guardarTecnicosCSV();
     }
 
-    public void finalizarOrden(String idOrden) throws OrdenNoEncontradaException {
+    public void finalizarOrden(String idOrden) throws OrdenNoEncontradaException,StockInsuficienteException  {
         OrdenTrabajo orden = buscarOrden(idOrden);
+        confirmarOrden(idOrden);
         orden.setEstado("Finalizada");
         if (orden.getTecnicoAsignado() != null) {
             orden.getTecnicoAsignado().deincrementarCarga();
@@ -298,20 +293,36 @@ public class GestionService {
     public void actualizarOrden(String id, OrdenTrabajo ordenActualizada) {
         ordenes.put(id, ordenActualizada);
     }
-
-    public void verificarYDescontarStock(OrdenTrabajo orden) throws StockInsuficienteException {
+    
+    public void verificarStock(OrdenTrabajo orden) throws StockInsuficienteException {
         for (Map.Entry<String, Integer> entry : orden.getRepuestosUsados().entrySet()) {
-            Repuesto repuesto = inventario.get(entry.getKey());
-            if (repuesto == null || repuesto.getStock() < entry.getValue()) {
-                throw new StockInsuficienteException("Stock insuficiente de: " + (repuesto != null ? repuesto.getNombre() : entry.getKey()));
+            Repuesto r = inventario.get(entry.getKey());
+
+            if (r == null || r.getStock() < entry.getValue()) {
+                throw new StockInsuficienteException("Stock insuficiente: " + entry.getKey());
             }
-            repuesto.setStock(repuesto.getStock() - entry.getValue());
         }
     }
+    
+    public void descontarStock(OrdenTrabajo orden) {
+        for (Map.Entry<String, Integer> entry : orden.getRepuestosUsados().entrySet()) {
+            Repuesto r = inventario.get(entry.getKey());
+            r.setStock(r.getStock() - entry.getValue());
+        }
+        guardarInventarioCSV();
+    }
+    
+    public void confirmarOrden(String idOrden) throws StockInsuficienteException,OrdenNoEncontradaException  {
+        OrdenTrabajo orden = buscarOrden(idOrden);
+
+        verificarStock(orden);
+        descontarStock(orden);
+    }
+
 
     public LocalDate calcularFechaEstimada(OrdenTrabajo orden) throws StockInsuficienteException {
         // Validación de stock antes de calcular
-        verificarYDescontarStock(orden); 
+        verificarStock(orden);
         
         int dias = 3 + orden.getRepuestosUsados().size();
         
@@ -355,8 +366,20 @@ public class GestionService {
     // ==========================================
     //                GETTERS
     // ==========================================
-    public Map<String, OrdenTrabajo> getOrdenes() { return ordenes; }
-    public List<Tecnico> getTecnicos() { return tecnicos; }
-    public List<Cliente> getClientes() { return clientes; }
-    public Map<String, Repuesto> getInventario() { return inventario; }
+    
+    public List<OrdenTrabajo> listarOrdenes() {
+        return new ArrayList<>(ordenes.values());
+    }
+    
+    public List<Tecnico> listarTecnicos() {
+    return Collections.unmodifiableList(tecnicos);
+}
+
+    public List<Cliente> listarClientes() {
+        return Collections.unmodifiableList(clientes);
+    }
+
+    public List<Repuesto> listarRepuestos() {
+        return new ArrayList<>(inventario.values());
+    }
 }
