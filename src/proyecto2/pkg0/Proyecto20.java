@@ -102,7 +102,7 @@ public class Proyecto20 {
     
     private static void listarOrdenes(GestionService service) {
         System.out.println("\n=== LISTADO DE ÓRDENES ===");
-        for (OrdenTrabajo ot : service.getOrdenes().values()) {
+        for (OrdenTrabajo ot : service.listarOrdenes()) {
             System.out.println(ot);
             System.out.println("  Diagnóstico: " + (ot.getDiagnostico() != null ? ot.getDiagnostico() : "Pendiente"));
             System.out.println("  Estado: " + ot.getEstado());
@@ -117,7 +117,7 @@ public class Proyecto20 {
         String rut = scanner.nextLine();
         
         Cliente cliente = null;
-        for (Cliente c : service.getClientes()) {
+        for (Cliente c : service.listarClientes()) {
             if (c.getRut().equals(rut)) {
                 cliente = c;
                 break;
@@ -128,7 +128,7 @@ public class Proyecto20 {
             System.out.print("Cliente no existe. Crear nuevo - Nombre: ");
             String nombre = scanner.nextLine();
             cliente = new Cliente(rut, nombre);
-            service.getClientes().add(cliente);
+            service.agregarCliente(cliente);
         }
         
         System.out.print("Marca del equipo: ");
@@ -155,26 +155,65 @@ public class Proyecto20 {
         }
     }
     
-    private static void editarOrden(GestionService service, Scanner scanner) throws Exception {
-        System.out.print("ID de orden a editar: ");
-        String id = scanner.nextLine();
-        OrdenTrabajo orden = service.buscarOrden(id);
-        
-        System.out.print("Nuevo diagnóstico (Enter para mantener): ");
-        String diag = scanner.nextLine();
-        if (!diag.isEmpty()) {
-            orden.setDiagnostico(diag);
+private static void editarOrden(GestionService service, Scanner scanner) throws Exception {
+    System.out.print("ID de orden a editar: ");
+    String id = scanner.nextLine();
+
+    OrdenTrabajo orden = service.buscarOrden(id);
+
+    while (true) {
+        System.out.println("\n--- EDITAR ORDEN ---");
+        System.out.println("1. Cambiar diagnóstico");
+        System.out.println("2. Cambiar estado");
+        System.out.println("3. Agregar repuesto");
+        System.out.println("4. Eliminar repuesto");
+        System.out.println("5. Volver");
+        System.out.print("Opción: ");
+
+        int op = scanner.nextInt();
+        scanner.nextLine();
+
+        switch (op) {
+
+            case 1:
+                System.out.print("Nuevo diagnóstico: ");
+                String diag = scanner.nextLine();
+                orden.setDiagnostico(diag);
+                break;
+
+            case 2:
+                System.out.print("Nuevo estado: ");
+                String estado = scanner.nextLine();
+                orden.setEstado(estado);
+                break;
+
+            case 3:
+                System.out.print("Código repuesto: ");
+                String cod = scanner.nextLine();
+
+                System.out.print("Cantidad: ");
+                int cant = scanner.nextInt();
+                scanner.nextLine();
+
+                orden.agregarRepuesto(cod, cant);
+                System.out.println("Repuesto agregado a la orden.");
+                break;
+
+            case 4:
+                System.out.print("Código repuesto a eliminar: ");
+                String codDel = scanner.nextLine();
+
+                orden.getRepuestosUsados().remove(codDel);
+                System.out.println("Repuesto eliminado.");
+                break;
+
+            case 5:
+                service.actualizarOrden(id, orden);
+                System.out.println("Cambios guardados.");
+                return;
         }
-        
-        System.out.print("Nuevo estado (Pendiente/En Reparación/Completada/Entregada): ");
-        String estado = scanner.nextLine();
-        if (!estado.isEmpty()) {
-            orden.setEstado(estado);
-        }
-        
-        service.actualizarOrden(id, orden);
-        System.out.println("Orden actualizada");
     }
+}
     
     private static void eliminarOrden(GestionService service, Scanner scanner) throws Exception {
         System.out.print("ID de orden a eliminar: ");
@@ -194,7 +233,7 @@ public class Proyecto20 {
         scanner.nextLine();
         
         if (op == 1) {
-            for (Repuesto r : service.getInventario().values()) {
+            for (Repuesto r : service.listarRepuestos()) {
                 System.out.println(r.getCodigo() + " - " + r.getNombre() + " - Stock: " + r.getStock() + " - $" + r.getPrecio());
             }
         } else if (op == 2) {
@@ -230,31 +269,20 @@ public class Proyecto20 {
     private static void calcularFecha(GestionService service, Scanner scanner) throws Exception {
         System.out.print("ID de orden: ");
         String id = scanner.nextLine();
+
         OrdenTrabajo orden = service.buscarOrden(id);
-        
-        System.out.print("Ingrese repuestos necesarios (código:cantidad, separados por coma): ");
-        String repuestosInput = scanner.nextLine();
-        String[] repuestos = repuestosInput.split(",");
-        for (String r : repuestos) {
-            String[] partes = r.split(":");
-            if (partes.length == 2) {
-                try {
-                    orden.agregarRepuesto(partes[0].trim(), Integer.parseInt(partes[1].trim()));
-                } catch (NumberFormatException e) {
-                    System.out.println("Cantidad inválida para " + partes[0]);
-                }
-            }
-        }
-        
+
         LocalDate fecha = service.calcularFechaEstimada(orden);
         orden.setFechaEstimadaEntrega(fecha);
+
         System.out.println("Fecha estimada de entrega: " + fecha);
-        
-        System.out.print("¿Desea confirmar y descontar stock? (s/n): ");
+
+        System.out.print("¿Desea confirmar orden y descontar stock? (s/n): ");
         String confirm = scanner.nextLine();
+
         if (confirm.equalsIgnoreCase("s")) {
-            service.verificarYDescontarStock(orden);
-            System.out.println("Stock actualizado. Orden en proceso.");
+            service.confirmarOrden(id);
+            System.out.println("Orden confirmada y stock actualizado.");
         }
-    }
+    }   
 }
