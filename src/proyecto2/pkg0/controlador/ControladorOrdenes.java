@@ -16,7 +16,6 @@ import proyecto2.pkg0.vistas.VentanaOrdenes;
 
 import javax.swing.*;
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.Map;
 
 public class ControladorOrdenes {
@@ -32,8 +31,8 @@ public class ControladorOrdenes {
         ventana.setVisible(true);
     }
     
-    public Collection<OrdenTrabajo> listarOrdenes() {
-        return service.getOrdenes().values();
+    public java.util.List<OrdenTrabajo> listarOrdenes() {
+        return service.listarOrdenes();
     }
     
     public OrdenTrabajo buscarOrdenPorId(String id) {
@@ -57,7 +56,7 @@ public class ControladorOrdenes {
             Tecnico tecnico = null;
             if (tecnicoInfo != null && tecnicoInfo.contains(" - ")) {
                 String idTecnico = tecnicoInfo.split(" - ")[0];
-                tecnico = service.getTecnicos().stream()
+                tecnico = service.listarTecnicos().stream()
                     .filter(t -> t.getId().equals(idTecnico))
                     .findFirst().orElse(null);
             }
@@ -119,7 +118,7 @@ public class ControladorOrdenes {
     }
     
     public void registrarCliente(String rut, String nombre) {
-        service.registrarNuevoCliente(new Cliente(rut, nombre));
+        service.agregarCliente(new Cliente(rut, nombre));
     }
     
     public void eliminarOrden(String id) {
@@ -149,10 +148,10 @@ public class ControladorOrdenes {
     // =================================================
     
     public java.util.List<Cliente> getClientes() {
-        return service.getClientes();
+        return service.listarClientes();
     }
-    
+
     public java.util.List<Tecnico> getTecnicos() {
-        return service.getTecnicos();
+        return service.listarTecnicos();
     }
 }
