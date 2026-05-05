@@ -341,7 +341,7 @@ public class GestionService {
         return new ArrayList<>(ordenes.values());
     }
     
-    public List<OrdenTrabajo> listaOrden(String estado){
+    public List<OrdenTrabajo> listaOrdenes(String estado){
         List<OrdenTrabajo> filtradas = new ArrayList<>();
         for (OrdenTrabajo o : ordenes.values()){
             if (o.getEstado().equalsIgnoreCase(estado)){
