@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 
 public class OrdenTrabajo implements Serializable {
@@ -55,6 +56,9 @@ public class OrdenTrabajo implements Serializable {
     
     public void agregarRepuesto(String codigo, int cantidad) {
         repuestosUsados.put(codigo, repuestosUsados.getOrDefault(codigo, 0) + cantidad);
+    }
+    public void agregarRepuesto(String codigo) {
+        agregarRepuesto(codigo, 1);
     }
     
     public void eliminarRepuesto(String codigo) {
@@ -121,7 +125,9 @@ public class OrdenTrabajo implements Serializable {
         return (repuestosUsados.size() * 5000) + 15000 + costoMejoras;
     }
     
-    public List<Mejora> getMejorasSolicitadas() { return mejorasSolicitadas; }
+    public List<Mejora> getMejorasSolicitadas() {
+        return Collections.unmodifiableList(mejorasSolicitadas);
+    }
     public void setMejorasSolicitadas(List<Mejora> mejorasSolicitadas) { 
         this.mejorasSolicitadas = mejorasSolicitadas;
         this.costoMejoras = 0;
@@ -153,7 +159,9 @@ public class OrdenTrabajo implements Serializable {
     }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
-    public Map<String, Integer> getRepuestosUsados() { return repuestosUsados; }
+    public Map<String, Integer> getRepuestosUsados() {
+        return Collections.unmodifiableMap(repuestosUsados);
+    }
     public boolean isAnalisisRealizado() { return analisisRealizado; }
     
     @Override
