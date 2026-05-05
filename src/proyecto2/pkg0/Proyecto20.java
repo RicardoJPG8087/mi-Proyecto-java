@@ -20,6 +20,26 @@ import java.util.*;
 
 public class Proyecto20 {
     
+    private static int leerOpcion(Scanner scanner){
+        while (true){
+            try{ return Integer.parseInt(scanner.nextLine());
+                
+            } catch(NumberFormatException e){
+                System.err.print("Entrada invalida. Ingrese un número: ");
+            }
+        }
+    }
+    
+    private static double leerDouble(Scanner scanner){
+        while (true){
+            try{ 
+                return Double.parseDouble(scanner.nextLine());
+            } catch(NumberFormatException e){
+                System.err.print("Entrada inválida. Ingrese un número (puede usar decimales): ");
+            }
+        }
+    }
+    
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         
@@ -29,9 +49,8 @@ public class Proyecto20 {
         System.out.println("2. Interfaz de Consola");
         System.out.print("Opción: ");
         
-        int opcion = scanner.nextInt();
         
-        if (opcion == 1) {
+        if (leerOpcion(scanner) == 1) {
             SwingUtilities.invokeLater(() -> {
                 new ControladorPrincipal().iniciar();
             });
@@ -57,8 +76,7 @@ public class Proyecto20 {
             System.out.println("9. Salir");
             System.out.print("Opción: ");
             
-            int opcion = scanner.nextInt();
-            scanner.nextLine();
+            int opcion = leerOpcion(scanner);
             
             try {
                 switch (opcion) {
@@ -170,8 +188,7 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
         System.out.println("5. Volver");
         System.out.print("Opción: ");
 
-        int op = scanner.nextInt();
-        scanner.nextLine();
+        int op = leerOpcion(scanner);
 
         switch (op) {
 
@@ -192,8 +209,7 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
                 String cod = scanner.nextLine();
 
                 System.out.print("Cantidad: ");
-                int cant = scanner.nextInt();
-                scanner.nextLine();
+                int cant = leerOpcion(scanner);
 
                 orden.agregarRepuesto(cod, cant);
                 System.out.println("Repuesto agregado a la orden.");
@@ -229,8 +245,7 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
         System.out.println("3. Actualizar stock");
         System.out.print("Opción: ");
         
-        int op = scanner.nextInt();
-        scanner.nextLine();
+        int op = leerOpcion(scanner);
         
         if (op == 1) {
             for (Repuesto r : service.listarRepuestos()) {
@@ -242,10 +257,9 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
             System.out.print("Nombre: ");
             String nom = scanner.nextLine();
             System.out.print("Stock inicial: ");
-            int stock = scanner.nextInt();
+            int stock = leerOpcion(scanner);
             System.out.print("Precio: ");
-            double precio = scanner.nextDouble();
-            scanner.nextLine();
+            double precio = leerDouble(scanner);
             System.out.print("Proveedor: ");
             String prov = scanner.nextLine();
             
@@ -257,7 +271,7 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
             Repuesto r = service.buscarRepuesto(cod);
             if (r != null) {
                 System.out.print("Nuevo stock: ");
-                int nuevoStock = scanner.nextInt();
+                int nuevoStock = leerOpcion(scanner);
                 r.setStock(nuevoStock);
                 System.out.println("Stock actualizado");
             } else {

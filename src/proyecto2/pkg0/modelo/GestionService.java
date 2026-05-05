@@ -29,6 +29,7 @@ public class GestionService {
     private final String RUTA_INVENTARIO = "inventario.csv";
     private final String RUTA_CLIENTES = "clientes.csv";
     private final String RUTA_MEJORAS = "mejoras.csv";
+    private final String RUTA_ORDENES = "ordenes.csv";
 
     public GestionService() {
         this.ordenes = new HashMap<>();
@@ -42,12 +43,13 @@ public class GestionService {
         cargarInventarioCSV();
         cargarClientesCSV();
         cargarMejorasCSV();  // ← Carga mejoras desde CSV
+        cargarOrdenesCSV();
     }
 
     // ==========================================
     //      CARGA Y GUARDADO DE DATOS (CSV)
     // ==========================================
-    
+//------------------------------------------------------------------------------
     public void cargarTecnicosCSV() {
         File archivo = new File(RUTA_TECNICOS);
         if (!archivo.exists()) return;
@@ -87,7 +89,7 @@ public class GestionService {
                     try {
                         String codigo = p[0];
                         String nombre = p[1];
-                        double precio = Double.parseDouble(p[2]);
+                        double precio = Double.parseDouble(p[2].trim());
                         int stock = Integer.parseInt(p[3]);
                         String proveedor = p[4];
                     
@@ -141,7 +143,7 @@ public class GestionService {
         }
     }
     
-    // ========== CARGA DE MEJORAS DESDE CSV ==========
+    // ========== CARGA DE MEJORAS DESDE CSV ==========//
     private void cargarMejorasCSV() {
         File archivo = new File(RUTA_MEJORAS);
         if (!archivo.exists()) {
@@ -218,12 +220,50 @@ public class GestionService {
         catalogoMejoras.put(mejora.getCodigo(), mejora);
         guardarMejorasCSV();
     }
-    // ==================================================
+    
+    public void guardarOrdenesCSV(){
+        try(PrintWriter pw = new PrintWriter(new FileWriter(RUTA_ORDENES))){
+            for (OrdenTrabajo o :ordenes.values()){
+                pw.println(String.join(";", o.getId(), o.getCliente().getRut(), o.getEquipo().getMarca(),
+                        o.getEstado(), o.getDiagnostico() != null ? o.getDiagnostico() : "Pendiente",
+                        o.getFechaIngreso().toString()
+                ));
+            }
+        } catch (IOException e){
+            System.err.println("Error al persistir órdenes: " + e.getMessage());
+        }
+    }
+    
+    public void cargarOrdenesCSV(){
+        File archivo = new File(RUTA_ORDENES);
+        if (!archivo.exists()) return;
+        try(BufferedReader br = new BufferedReader(new FileReader(archivo))){
+            String linea;
+            while((linea = br.readLine()) != null){
+                String[] p = linea.split(";");
+                if (p.length >= 6){
+                    Cliente c = buscarCliente(p[1]);
+                    if (c == null) c = new Cliente(p[1], "Cliente Desconocido");
+                    Equipo eq = new Equipo("SN-" + p[0], p[2], "Modelo Genérico");
+                    OrdenTrabajo ot = new OrdenTrabajo(p[0], c, eq);
+                    ot.setEstado(p[3]);
+                    ot.setDiagnostico(p[4]);
+                    ot.setFechaIngreso(LocalDate.parse(p[5]));
+                    ordenes.put(ot.getId(), ot);
+                }
+            }
+        }
+        catch (Exception e){
+            System.err.println("Error al cargar órdenes: " + e.getMessage());
+        }
+    }
+    
+//------------------------------------------------------------------------------
     
     // ==========================================
     //    MÉTODOS QUE FALTABAN (SOLUCIÓN ERRORES)
     // ==========================================
-
+//------------------------------------------------------------------------------
     public void agregarCliente(Cliente cliente) {
         if (buscarCliente(cliente.getRut()) == null) {
             clientes.add(cliente);
@@ -258,11 +298,12 @@ public class GestionService {
     public Repuesto buscarRepuesto(String codigo) {
         return inventario.get(codigo);
     }
-
+//------------------------------------------------------------------------------
+    
     // ==========================================
     //   LÓGICA DE ÓRDENES Y TÉCNICOS
     // ==========================================
-
+//------------------------------------------------------------------------------
     public void asignarTecnicoAOrden(String idOrden, Tecnico tecnico) throws OrdenNoEncontradaException {
         OrdenTrabajo orden = buscarOrden(idOrden);
         orden.setTecnicoAsignado(tecnico);
@@ -286,6 +327,30 @@ public class GestionService {
         return orden;
     }
 
+    public List<OrdenTrabajo> buscarOrden(Cliente cliente){
+        List<OrdenTrabajo> filtradas = new ArrayList<>();
+        for (OrdenTrabajo o : ordenes.values()){
+            if (o.getCliente().getRut().equals(cliente.getRut())){
+                filtradas.add(o);
+            }
+        }
+        return filtradas;
+    }
+    
+    public List<OrdenTrabajo> listarOrdenes(){
+        return new ArrayList<>(ordenes.values());
+    }
+    
+    public List<OrdenTrabajo> listaOrden(String estado){
+        List<OrdenTrabajo> filtradas = new ArrayList<>();
+        for (OrdenTrabajo o : ordenes.values()){
+            if (o.getEstado().equalsIgnoreCase(estado)){
+                filtradas.add(o);            
+            }
+        }
+        return filtradas;
+    }
+    
     public void agregarOrden(OrdenTrabajo orden) {
         ordenes.put(orden.getId(), orden);
     }
@@ -335,12 +400,9 @@ public class GestionService {
         if (pendientes > 5) dias += 2;
         return LocalDate.now().plusDays(dias);
     }
+//------------------------------------------------------------------------------
     
     // ========== MÉTODOS PARA MEJORAS ==========
-    
-    public Map<String, Mejora> getCatalogoMejoras() {
-        return catalogoMejoras;
-    }
     
     public Mejora buscarMejora(String codigo) {
         return catalogoMejoras.get(codigo);
@@ -367,13 +429,9 @@ public class GestionService {
     //                GETTERS
     // ==========================================
     
-    public List<OrdenTrabajo> listarOrdenes() {
-        return new ArrayList<>(ordenes.values());
-    }
-    
     public List<Tecnico> listarTecnicos() {
-    return Collections.unmodifiableList(tecnicos);
-}
+        return Collections.unmodifiableList(tecnicos);
+    }
 
     public List<Cliente> listarClientes() {
         return Collections.unmodifiableList(clientes);
@@ -381,5 +439,9 @@ public class GestionService {
 
     public List<Repuesto> listarRepuestos() {
         return new ArrayList<>(inventario.values());
+    }
+    
+    public Map<String, Mejora> getCatalogoMejoras(){
+        return Collections.unmodifiableMap(catalogoMejoras);
     }
 }
