@@ -252,6 +252,7 @@ public class GestionService {
                     ordenes.put(ot.getId(), ot);
                 }
             }
+            System.out.println("Órdenes cargadas: " + ordenes.size());
         }
         catch (Exception e){
             System.err.println("Error al cargar órdenes: " + e.getMessage());
@@ -283,6 +284,7 @@ public class GestionService {
             throw new OrdenNoEncontradaException("La orden " + id + " no existe.");
         }
         ordenes.remove(id);
+        guardarOrdenesCSV();
     }
 
     public void agregarRepuesto(Repuesto r) {
@@ -353,10 +355,12 @@ public class GestionService {
     
     public void agregarOrden(OrdenTrabajo orden) {
         ordenes.put(orden.getId(), orden);
+        guardarOrdenesCSV(); 
     }
     
     public void actualizarOrden(String id, OrdenTrabajo ordenActualizada) {
         ordenes.put(id, ordenActualizada);
+        guardarOrdenesCSV();
     }
     
     public void verificarStock(OrdenTrabajo orden) throws StockInsuficienteException {
