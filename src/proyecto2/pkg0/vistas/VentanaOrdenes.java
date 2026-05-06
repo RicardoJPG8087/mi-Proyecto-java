@@ -29,6 +29,7 @@ public class VentanaOrdenes extends JFrame {
     private JComboBox<String> cbMejoras;
     private JTextArea taMejoras;
     private JButton btnAgregarMejora;
+    private boolean modoEdicion = false;
     // ====================================================
     
     public VentanaOrdenes(ControladorOrdenes controlador) {
@@ -51,7 +52,7 @@ public class VentanaOrdenes extends JFrame {
         JButton btnBuscar = new JButton("Buscar");
         btnBuscar.addActionListener(e -> buscarOrden(txtBuscar.getText()));
         panelBusqueda.add(btnBuscar);
-        JButton btnActualizar = new JButton("Actualizar");
+        JButton btnActualizar = new JButton("Refrescar Lista");
         btnActualizar.addActionListener(e -> cargarDatos());
         panelBusqueda.add(btnActualizar);
         
@@ -60,9 +61,16 @@ public class VentanaOrdenes extends JFrame {
         JButton btnGuardar = new JButton("Guardar Cambios");
         JButton btnEliminar = new JButton("Eliminar");
         JButton btnCalcularFecha = new JButton("Calcular Fecha Estimada");
+        
+        btnNuevo.addActionListener(e -> {
+            limpiarFormulario();
+            modoEdicion = false;
+            txtId.setEditable(true);
+            btnGuardar.setText("Crear Orden");
+        });
 
-        btnNuevo.addActionListener(e -> limpiarFormulario());
         btnGuardar.addActionListener(e -> guardarOrden());
+        btnGuardar.setText("Actualizar Orden");
         btnEliminar.addActionListener(e -> eliminarOrden());
         btnCalcularFecha.addActionListener(e -> controlador.calcularFechaEstimada(txtId.getText()));
 
@@ -161,7 +169,7 @@ public class VentanaOrdenes extends JFrame {
         for (OrdenTrabajo ot : controlador.listarOrdenes()) {
             modeloTabla.addRow(new Object[]{
                 ot.getId(),
-                ot.getCliente().getNombre(),
+                ot.getCliente() != null ? ot.getCliente().getNombre(): "Sin cliente",
                 ot.getEquipo().toString(),
                 ot.getEstado(),
                 ot.getDiagnostico() != null ? ot.getDiagnostico() : "Sin diagnóstico",
@@ -216,6 +224,8 @@ public class VentanaOrdenes extends JFrame {
                     sb.append(entry.getKey()).append(":").append(entry.getValue()).append("\n");
                 }
                 taRepuestos.setText(sb.toString());
+                modoEdicion = true;
+                txtId.setEditable(false);
                 
                 // ========== NUEVO: Mostrar mejoras ==========
                 mostrarMejorasEnTextArea(ot);
@@ -270,6 +280,10 @@ public class VentanaOrdenes extends JFrame {
     private void guardarOrden() {
         try {
             String id = txtId.getText();
+            if (!modoEdicion && controlador.existeOrden(id)) {
+                JOptionPane.showMessageDialog(this, "Ya existe una orden con ese ID");
+                return;
+            }
             if (id.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "El ID de la orden es obligatorio");
                 return;
@@ -283,6 +297,7 @@ public class VentanaOrdenes extends JFrame {
             
             controlador.guardarOrden(id, clienteStr, tecnicoStr, estado, diagnostico, repuestosText);
             cargarDatos();
+            modoEdicion = false;
             limpiarFormulario();
             JOptionPane.showMessageDialog(this, "Orden guardada exitosamente");
         } catch (Exception ex) {
@@ -333,5 +348,6 @@ public class VentanaOrdenes extends JFrame {
         taRepuestos.setText("");
         taMejoras.setText("");
         cbEstado.setSelectedIndex(0);
+        tablaOrdenes.clearSelection();
     }
 }
