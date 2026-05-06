@@ -35,6 +35,17 @@ public class VentanaRepuestos extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
         
+                
+        JPanel panelBusqueda = new JPanel(new FlowLayout());
+
+        panelBusqueda.add(new JLabel("Buscar:"));
+        JTextField txtBuscar = new JTextField(15);
+        panelBusqueda.add(txtBuscar);
+
+        JButton btnBuscar = new JButton("Buscar");
+        panelBusqueda.add(btnBuscar);
+        
+        
         // Tabla
         modeloTabla = new DefaultTableModel(new String[]{"Código", "Nombre", "Stock", "Precio", "Proveedor"}, 0) {
             private static final long serialVersionUID = 1L;
@@ -77,11 +88,20 @@ public class VentanaRepuestos extends JFrame {
         btnAgregar.addActionListener(e -> guardarRepuesto());
         btnEliminar.addActionListener(e -> eliminarRepuesto());
         btnActualizar.addActionListener(e -> cargarDatos());
+        btnBuscar.addActionListener(e -> buscarRepuesto(txtBuscar.getText()));
         
         panelBotones.add(btnAgregar);
         panelBotones.add(btnEliminar);
         panelBotones.add(btnActualizar);
-        add(panelBotones, BorderLayout.NORTH);
+        JButton btnMostrarTodos = new JButton("Mostrar todos");
+        btnMostrarTodos.addActionListener(e -> cargarDatos());
+        panelBusqueda.add(btnMostrarTodos);
+        
+        JPanel panelSuperior = new JPanel(new BorderLayout());
+        panelSuperior.add(panelBusqueda, BorderLayout.NORTH);
+        panelSuperior.add(panelBotones, BorderLayout.SOUTH);
+
+        add(panelSuperior, BorderLayout.NORTH);
         
         // Seleccionar fila
         tablaRepuestos.getSelectionModel().addListSelectionListener(e -> {
@@ -154,6 +174,24 @@ public class VentanaRepuestos extends JFrame {
             cargarDatos();
             limpiarFormulario();
             JOptionPane.showMessageDialog(this, "Repuesto eliminado");
+        }
+    }
+    
+    private void buscarRepuesto(String criterio) {
+        modeloTabla.setRowCount(0);
+
+        for (Repuesto r : controlador.listarRepuestos()) {
+            if (r.getCodigo().toLowerCase().contains(criterio.toLowerCase()) ||
+                r.getNombre().toLowerCase().contains(criterio.toLowerCase())) {
+
+                modeloTabla.addRow(new Object[]{
+                    r.getCodigo(),
+                    r.getNombre(),
+                    r.getStock(),
+                    r.getPrecio(),
+                    r.getProveedor()
+                });
+            }
         }
     }
     
