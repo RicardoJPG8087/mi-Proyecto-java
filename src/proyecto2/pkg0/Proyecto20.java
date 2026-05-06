@@ -185,7 +185,8 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
         System.out.println("2. Cambiar estado");
         System.out.println("3. Agregar repuesto");
         System.out.println("4. Eliminar repuesto");
-        System.out.println("5. Volver");
+        System.out.println("5. Agregar mejora");
+        System.out.println("6. Volver");
         System.out.print("Opción: ");
 
         int op = leerOpcion(scanner);
@@ -222,8 +223,20 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
                 orden.getRepuestosUsados().remove(codDel);
                 System.out.println("Repuesto eliminado.");
                 break;
+                
+            case 5: 
+                System.out.println("Mejoras disponibles:");
+                for (Mejora m : service.getCatalogoMejoras().values()) {
+                    System.out.println(m.getCodigo() + " - " + m.getNombre());
+                }
 
-            case 5:
+                System.out.print("Código de mejora: ");
+                String codMejora = scanner.nextLine();
+
+                service.agregarMejoraAOrden(id, codMejora);
+                break;
+
+            case 6:
                 service.actualizarOrden(id, orden);
                 System.out.println("Cambios guardados.");
                 return;
@@ -243,6 +256,8 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
         System.out.println("1. Listar repuestos");
         System.out.println("2. Agregar repuesto");
         System.out.println("3. Actualizar stock");
+        System.out.println("4. Buscar repuesto");    
+        System.out.println("5. Eliminar repuesto");  
         System.out.print("Opción: ");
         
         int op = leerOpcion(scanner);
@@ -277,7 +292,27 @@ private static void editarOrden(GestionService service, Scanner scanner) throws 
             } else {
                 System.out.println("Repuesto no encontrado");
             }
+        } else if (op == 4){
+            System.out.print("Código del repuesto: ");
+            String cod = scanner.nextLine();
+
+            Repuesto r = service.buscarRepuesto(cod);
+            if (r != null) {
+                System.out.println("Encontrado: " + r.getNombre() + 
+                " | Stock: " + r.getStock() + 
+                " | Precio: $" + r.getPrecio());
+            } else {
+                System.out.println("Repuesto no encontrado");
+            }
+                
+        } else if(op == 5){
+            System.out.print("Código del repuesto a eliminar: ");
+            String cod = scanner.nextLine();
+
+            service.eliminarRepuesto(cod);
+            System.out.println("Repuesto eliminado");
         }
+        
     }
     
     private static void calcularFecha(GestionService service, Scanner scanner) throws Exception {
