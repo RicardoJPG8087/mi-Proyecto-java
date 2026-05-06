@@ -31,6 +31,15 @@ public class ControladorOrdenes {
         ventana.setVisible(true);
     }
     
+    public boolean existeOrden(String id) {
+        try {
+            service.buscarOrden(id);
+            return true;
+        } catch (OrdenNoEncontradaException e) {
+            return false;
+        }
+    }
+    
     public java.util.List<OrdenTrabajo> listarOrdenes() {
         return service.listarOrdenes();
     }
