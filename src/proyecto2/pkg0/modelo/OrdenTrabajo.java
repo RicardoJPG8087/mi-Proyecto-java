@@ -89,8 +89,8 @@ public class OrdenTrabajo implements Serializable {
         
         if (tipoServicio.equals("REPARACION")) {
             tipoServicio = "AMBOS";
-        } else if (tipoServicio.equals("MEJORA")) {
-            tipoServicio = "AMBOS";
+        } else if (!tipoServicio.equals("AMBOS")) {
+            tipoServicio = "MEJORA";
         }
         
         if (mejora.getRepuestoNecesario() != null && !mejora.getRepuestoNecesario().isEmpty()) {
