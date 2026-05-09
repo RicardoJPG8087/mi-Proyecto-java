@@ -14,6 +14,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 import proyecto2.pkg0.modelo.excepciones.*;
+import proyecto2.pkg0.persistencia.ArchivoUtils;
 import java.util.Collections;
 
 public class GestionService {
@@ -233,29 +234,89 @@ public class GestionService {
             System.err.println("Error al persistir órdenes: " + e.getMessage());
         }
     }
+
+    public void guardarOrdenesCSV() {
+        List<String[]> lineas = new ArrayList<>();
+        
+        lineas.add(new String[]{"ID", "RUT_Cliente", "Serie_Equipo", "ID_Tecnico", "Estado", "Diagnostico", "Fecha", "Repuestos", "Mejoras"});
+
+        for (OrdenTrabajo orden : ordenes.values()) {
+            
+            List<String> repuestosLista = new ArrayList<>();
+            orden.getRepuestosUsados().forEach((codigo, cantidad) -> {
+                repuestosLista.add(codigo + ":" + cantidad);
+            });
+            String repuestosSerializados = repuestosLista.isEmpty() ? "SIN_REPUESTOS" : String.join(",", repuestosLista);
+
+            List<String> mejorasLista = new ArrayList<>();
+            for (Mejora m : orden.getMejorasSolicitadas()) {
+                mejorasLista.add(m.getCodigo());
+            }
+            String mejorasSerializadas = mejorasLista.isEmpty() ? "SIN_MEJORAS" : String.join(",", mejorasLista);
+
+            String idTecnico = orden.getTecnicoAsignado() != null ? orden.getTecnicoAsignado().getId() : "SIN_TECNICO";
+
+            lineas.add(new String[]{orden.getId(),orden.getCliente().getRut(),orden.getEquipo().getSerie(),idTecnico,                           
+                orden.getEstado(),orden.getDiagnostico() != null ? orden.getDiagnostico() : "Sin diagnostico",orden.getFechaIngreso().toString(),  
+                repuestosSerializados, mejorasSerializadas                  
+            });
+        }
+
+        try {
+            ArchivoUtils.guardarCSV(lineas, RUTA_ORDENES);
+            System.out.println("Órdenes guardadas correctamente.");
+        } catch (IOException e) {
+            System.err.println("Error al guardar: " + e.getMessage());
+        }
+    }
     
-    public void cargarOrdenesCSV(){
-        File archivo = new File(RUTA_ORDENES);
-        if (!archivo.exists()) return;
-        try(BufferedReader br = new BufferedReader(new FileReader(archivo))){
-            String linea;
-            while((linea = br.readLine()) != null){
-                String[] p = linea.split(";");
-                if (p.length >= 6){
-                    Cliente c = buscarCliente(p[1]);
-                    if (c == null) c = new Cliente(p[1], "Cliente Desconocido");
-                    Equipo eq = new Equipo("SN-" + p[0], p[2], "Modelo Genérico");
-                    OrdenTrabajo ot = new OrdenTrabajo(p[0], c, eq);
-                    ot.setEstado(p[3]);
-                    ot.setDiagnostico(p[4]);
-                    ot.setFechaIngreso(LocalDate.parse(p[5]));
-                    ordenes.put(ot.getId(), ot);
+    private void cargarOrdenesCSV() {
+        try {
+            List<String[]> datos = ArchivoUtils.leerCSV(RUTA_ORDENES);
+
+            // Usamos un for normal con índice para empezar desde la posición 1
+            // La posición 0 es el encabezado (ID;RUT_Cliente...) y la saltamos
+            for (int i = 1; i < datos.size(); i++) { 
+                String[] fila = datos.get(i); 
+
+                if (fila.length >= 5) {
+                    String id = fila[0];
+                    String rutCliente = fila[1];
+                    String serieEquipo = fila[2];
+                    String idTecnico = fila[3];
+                    String estado = fila[4];
+
+                    Cliente cliente = null;
+                    for (Cliente c : clientes) {
+                        if (c.getRut().equals(rutCliente)) {
+                            cliente = c;
+                            break;
+                        }
+                    }
+
+                    if (cliente == null) cliente = new Cliente(rutCliente, "Cliente Recuperado");
+                    Equipo equipo = new Equipo(serieEquipo, "Genérica", "Modelo");
+
+                    Tecnico tecnicoAsignado = null;
+                    for (Tecnico t : tecnicos) {
+                        if (t.getId().equals(idTecnico)) {
+                            tecnicoAsignado = t;
+                            break;
+                        }
+                    }
+
+                    OrdenTrabajo orden = new OrdenTrabajo(id, cliente, equipo);
+                    orden.setTecnicoAsignado(tecnicoAsignado);
+                    orden.setEstado(estado);
+
+                    ordenes.put(id, orden);
                 }
             }
-            System.out.println("Órdenes cargadas: " + ordenes.size());
-        }
-        catch (Exception e){
-            System.err.println("Error al cargar órdenes: " + e.getMessage());
+            System.out.println("Órdenes cargadas exitosamente (sin encabezado).");
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado: " + e.getMessage());
         }
     }
     
