@@ -221,19 +221,6 @@ public class GestionService {
         catalogoMejoras.put(mejora.getCodigo(), mejora);
         guardarMejorasCSV();
     }
-    
-    public void guardarOrdenesCSV(){
-        try(PrintWriter pw = new PrintWriter(new FileWriter(RUTA_ORDENES))){
-            for (OrdenTrabajo o :ordenes.values()){
-                pw.println(String.join(";", o.getId(), o.getCliente().getRut(), o.getEquipo().getMarca(),
-                        o.getEstado(), o.getDiagnostico() != null ? o.getDiagnostico() : "Pendiente",
-                        o.getFechaIngreso().toString()
-                ));
-            }
-        } catch (IOException e){
-            System.err.println("Error al persistir órdenes: " + e.getMessage());
-        }
-    }
 
     public void guardarOrdenesCSV() {
         List<String[]> lineas = new ArrayList<>();
