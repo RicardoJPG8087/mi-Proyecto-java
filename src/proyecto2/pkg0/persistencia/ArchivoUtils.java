@@ -41,4 +41,23 @@ public class ArchivoUtils {
             }
         }
     }
+    public static List<String[]> leerCSV(String nombreArchivo) throws IOException {
+        List<String[]> datos = new ArrayList<>();
+        File archivo = new File(nombreArchivo);
+        
+        if (!archivo.exists()) {
+            return datos; // Retorna lista vacía si el archivo no existe aún
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                if (!linea.trim().isEmpty()) {
+                    // Dividimos la línea por el punto y coma ";" que usas al guardar
+                    datos.add(linea.split(";"));
+                }
+            }
+        }
+        return datos;
+    }
 }
